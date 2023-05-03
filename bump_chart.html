@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<style>
+  * {
+    font-family: 'Montserrat'
+  }
+</style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
+<div id="chart" style="width:600px"></div>
+<script src="https://d3js.org/d3.v4.min.js" charset="utf-8"></script>
+<script>
+  var divwidth = +d3.select("#chart").style("width").replace("px",""),
+      margin = {top:40, right:20, bottom:20, left:110},
+      width = divwidth - margin.right - margin.left,
+      height = divwidth * .5 - margin.top - margin.bottom,
+      svg = d3.select("#chart").append("svg")
+        .attr("width", width + margin.right + margin.left)
+        .attr("height", height + margin.top + margin.bottom),
+      g = svg.append("g")
+        .attr("width", width)
+        .attr("height", height)
+        .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+  d3.csv("bump_chart.csv", function(error, data) {
+    if (error) throw error;
+
+    // nest the data by year
+    var nestedData = d3.nest()
+      .key(function(d) { return d.year; })
+      .entries(data);
+
+    // calculate ranks and cumulative dollars within each year
+    nestedData.forEach(function(d) {
+      d.values.sort(function(a,b) { return b.money - a.money; });
+      var cumsum = 0;
+      d.values.forEach(function(v, i) {
+        v.money = +v.money;
+        v.rank = i + 1;
+
+        cumsum = cumsum + v.money;
+        v.cumsum = cumsum;
+        return(v);
+      });
+      return(d);
+    });
+
+    // scale for columns
+    var x = d3.scaleBand()
+      .domain(nestedData.map(function(d) { return d.key; }))
+      .range([0, width])
+      .padding(.2);
+
+    // scale for stacked rectangles
+    var yspacing = 5;
+    var y = d3.scaleLinear()
+      .domain([0, d3.max(nestedData, function(d) { return d3.sum(d.values, function(v) { return +v.money; }); })])
+      .range([0, height]);
+
+    // color palette
+    var color = d3.scaleOrdinal()
+      .domain(data.map(function(d) { return d.country; }))
+      .range(['#66c2a5','#fc8d62','#8da0cb','#e78ac3']);
+
+    // create group for each year
+    var pane = g.selectAll("g.pane")
+      .data(nestedData)
+      .enter()
+      .append("g")
+      .attr("class", "pane")
+      .attr("transform", function(d) { return "translate(" + x(d.key) + ",0)"; });
+
+    // group for each rectangle
+    var pill = pane.selectAll("g.pill")
+      .data(function(d) { return d.values; })
+      .enter()
+      .append("g")
+      .attr("class", "pill")
+      .attr("transform", function(v) { return "translate(0," + (y(v.cumsum - v.money) + yspacing) + ")"; });
+
+    // rectangles
+    pill.append("rect")
+      .attr("x", 0)
+      .attr("y", 0)
+      .attr("width", x.bandwidth())
+      .attr("height", function(v) { return y(v.money) - yspacing; })
+      .style("fill", function(v) { return color(v.country); });
+
+    // data labels
+    pill.append("text")
+      .attr("x", x.bandwidth() / 2)
+      .attr("y", function(v) { return y(v.money) / 2; })
+      .attr("dy", 3)
+      .style("text-anchor", "middle")
+      .text(function(v) { return d3.format("$,.0f")(v.money); });
+    
+    // unnest function from https://bl.ocks.org/SpaceActuary/723b26e187e6bbc2608f
+    var unnest = function(data, children){
+      var out = [];
+      data.forEach(function(d,i) {
+        d_keys = Object.keys(d);
+        values = d[children];
+        
+        values.forEach(function(v){
+          d_keys.forEach(function(k){
+            if (k != children) { v[k] = d[k]; }
+          });
+          out.push(v);
+        });
+        
+      });
+      return out;
+    };
+
+    // unnest the data (keeps the calculated ranks and dollars)
+    var unnestedData = unnest(nestedData, "values");
+
+    // nest by country now
+    var renestedData = d3.nest()
+      .key(function(d) { return d.country; })
+      .entries(unnestedData);
+
+    // get previous year values needed for trapezoid coordinates
+    renestedData.forEach(function(d) {
+      d.values.sort(function(a,b) { return a.year - b.year; });
+      var prevyear = "0";
+      var prevmoney = 0;
+      var prevcumsum = 0;
+      d.values.forEach(function(v, i) {
+        v.country = d.key;
+
+        v.prevmoney = prevmoney;
+        v.prevcumsum = prevcumsum;
+        v.prevyear = prevyear;
+
+        prevmoney = v.money;
+        prevcumsum = v.cumsum;
+        prevyear = v.year;
+        return(v);
+      });
+      return(d);
+    });
+
+    // add the trapezoids
+    var connectorSet = g.selectAll("g.connector")
+      .data(renestedData)
+      .enter()
+      .append("g")
+      .attr("class", "connector");
+
+    connectorSet.selectAll("polygon")
+      .data(function(d) { return d.values.slice(1); })
+      .enter()
+      .append("polygon")
+      .attr("points", function(v) { return (x(v.prevyear) + x.bandwidth()) + "," + (y(v.prevcumsum - v.prevmoney) + yspacing) + " " +
+                                           (x(v.year)) + "," + (y(v.cumsum - v.money) + yspacing) + " " +
+                                           (x(v.year)) + "," + (y(v.cumsum)) + " " +
+                                           (x(v.prevyear) + x.bandwidth()) + "," + (y(v.prevcumsum)); })
+      .style("fill", function(v) { return color(v.country); })
+      .style("fill-opacity", .5);
+
+    // add labels using first year's data
+    g.selectAll("text.label")
+      .data(nestedData[0].values)
+      .enter()
+      .append("text")
+      .attr("class", "label")
+      .attr("x", 12)
+      .attr("y", function(d) { return y(d.cumsum - d.money / 2); })
+      .attr("dy", 8)
+      .style("text-anchor", "end")
+      .style("fill", function(d) { return color(d.country); })
+      .text(function(d) { return d.country; });
+
+    // add x axis
+    var xAxis = g.append("g")
+      .call(d3.axisTop(x));
+    xAxis.selectAll("path, line").remove();
+    xAxis.selectAll("text").style("font-size", "14px");
+  });
+</script>
