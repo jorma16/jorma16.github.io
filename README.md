@@ -2,7 +2,7 @@
 **Alumno:** Jorge Marchán Gutiérrez
 
 ## Ejercicio 1 - Circle Packing
-[Aquí](!https://jorma16.github.io/circle_packing.html) tenéis colgada la primera representación de todas.
+[Aquí](https://jorma16.github.io/circle_packing.html) tenéis colgada la primera representación de todas.
 ### Técnica de representación
 Se trata de una visualización jerárquica de subconjuntos, el área de cada subconjunto se representa como un círculo, el objetivo es comprender mejor las diferencias entre los diferentes subconjuntos, visualmente hablando.
 
@@ -11,7 +11,7 @@ En el ejemplo, se muestra el número de habitantes por pais y por continente, en
 Podemos representar datos cuantitativos con esta técnica.
 
 ## Ejercicio 2 - Gauge
-[Aquí](!https://jorma16.github.io/gauge.html) tenéis colgada esta representación
+[Aquí](https://jorma16.github.io/gauge.html) tenéis colgada esta representación
 ### Técnica de representación
 Se trata de una de las herramientas más usadas para representar valores progresivos.
 
