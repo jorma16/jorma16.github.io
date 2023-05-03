@@ -21,12 +21,9 @@ En el ejemplo se muestra un valor porcentual que va de 0 a 100, distribuido en t
 
 Nos sirve para representar datos cuantitativos dentro de un rango. En este caso solo necesitamos tener el valor minimo, el máximo y el actual, para poder representar este gráfico, si tenemos intervalos también los necesitaremos.
 ## Ejercicio 3 - Bump Chart
+[Aquí](https://jorma16.github.io/bump_chart.html) tenéis colgada esta representación
 
+### Técnica de representación
+El Bump Chart es un tipo de gráfico utilizado para explorar los cambios en el rango de un valor en una dimension de tiempo.
 
-[Puntos 1 y 2] Presentaros siguiendo el esquema de la PEC 1.
-[Puntos 1 y 2: 5%] Indicad donde está colgada la visualización y cómo  acceder.
-[Punto 3: 30%] Definid cada técnica de visualización de forma general: nombre, origen, descripción/funcionamiento, ejemplos de aplicación, etc.
-[Punto 4: 10%] Describid el tipo de datos que se pueden representar con cada técnica (datos cuantitativos, cualitativas? Qué estructura tienen que tener para cada técnica?). Explicar las limitaciones en cuanto a datos (hay medida mínima y máxima del juego de datos para cada técnica?).
-[Punto 5: 20%] Hacer una representación con cada una de las técnicas usando un conjunto de datos abiertos (veáis más abajo algunas fuentes de datos abiertos). En total hay que hacer 3 representaciones simples con 3 conjuntos de datos escogidos por el estudiante.
-[Punto 6: 30%] Comentar brevemente las tres representaciones indicando qué se representa y qué o qué aspectos muestra o demuestra cada representación. 
-[Punto 7: 5%] Cada una de las tres presentaciones deben tener una duración de unos 2-3 minutos. En total, el vídeo (único) con las tres técnicas no puede exceder de 7 minutos. Se penalizará salir de ese rango, porque se valora la capacidad de síntesis y de comunicación
+Para ello, los datos deben de disponer de timestamps y estar agrupados en función del número de etiquetas temporales que necesitemos, en nuestro caso, por decadas. Además en este tipo de gráficos suele ser necesario una segunda dimension que serian cada una de las "filas" que tenemos en el gráfico. Con este tipo de visualización podemos de un simple vistazo observar como ha ido cambiando la progresion de los distintos actores entre si, en el intervalo de tiempo con el que trabajamos en nuestro dataset.
